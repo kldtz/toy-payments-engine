@@ -1,0 +1,18 @@
+[package]
+name = "toy-payments-engine"
+version = "1.0.0"
+edition = "2021"
+authors = ["Tobias Kolditz"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "3.2", features = ["derive"] } # CLI argument parser for clean interface
+csv = "1.1" # CSV library that uses serde for (de)serialization
+rust_decimal = "1.24" # Decimal library to avoid floating point errors
+serde = { version = "1", features = ["derive"] }
+thiserror = "1" # Library with derive macro for error (to avoid boilerplate code for custom error)
+
+[dev-dependencies]
+assert_cmd = "2.0" # Command assertions for testing the CLI
+predicates = "2.1" # Predicate functions for testing
