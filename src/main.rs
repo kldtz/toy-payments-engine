@@ -25,7 +25,7 @@ pub fn process_transactions<P>(path: P) -> Result<PaymentsEngine, csv::Error>
     }).ok()) ;
     let mut payments_engine = PaymentsEngine::new();
     for transaction in transaction_iter {
-        if let Err(err) = (&mut payments_engine).execute(transaction) {
+        if let Err(err) = payments_engine.execute(transaction) {
             eprintln!("{}", err)
         }
     }
