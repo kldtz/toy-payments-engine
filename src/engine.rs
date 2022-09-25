@@ -81,8 +81,8 @@ impl PaymentsEngine {
 
     /// Disputes past deposit transaction.
     ///
-    /// Fails if client account is locked, the account does not exist, or the disputed transaction
-    /// does not exist.
+    /// Fails if client account is locked, the account does not exist or has insufficient funds,
+    /// the disputed transaction does not exist, or is already disputed.
     pub fn dispute(&mut self, client: u16, tx: u32) -> Result<()> {
         let account = self.accounts.get_mut(&client).ok_or_else(|| {
             PaymentError::UnknownClient { client, tx_type: "Dispute".to_string() }
@@ -91,6 +91,13 @@ impl PaymentsEngine {
         let deposit = self.deposits.get_mut(&tx).ok_or_else(|| {
             PaymentError::UnknownTransaction { client, tx, tx_type: String::from("Dispute") }
         })?;
+        if deposit.disputed {
+            return Err(PaymentError::InvalidTransaction(format!(
+                "Deposit transaction {} of client {} is already disputed, cannot be disputed twice",
+                tx,
+                client
+            )))
+        }
         if account.available >= deposit.amount {
             deposit.disputed = true;
             account.available -= deposit.amount;
@@ -292,6 +299,16 @@ mod tests {
         let mut engine = PaymentsEngine::new();
         engine.deposit(1, 1, Decimal::new(10, 0)).unwrap();
         engine.withdraw(1, 2, Decimal::new(1, 0)).unwrap();
+        engine.dispute(1, 1).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "InvalidTransaction")]
+    fn double_dispute_fails() {
+       let mut engine = PaymentsEngine::new();
+        engine.deposit(1, 1, Decimal::new(10, 0)).unwrap();
+        engine.deposit(1, 2, Decimal::new(100, 0)).unwrap();
+        engine.dispute(1, 1).unwrap();
         engine.dispute(1, 1).unwrap();
     }
 
