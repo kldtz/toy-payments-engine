@@ -28,7 +28,7 @@ pub struct Transaction {
 }
 
 /// Information about client account
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct Account {
     /// Client identifier
     pub client: u16,
