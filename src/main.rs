@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::process::ExitCode;
 
 use clap::Parser;
 
@@ -21,8 +22,8 @@ pub fn process_transactions<P>(path: P) -> Result<PaymentsEngine, csv::Error>
 {
     let transaction_iter = read_transactions(path)?
         .filter_map(|r| r.map_err(|e| {
-        eprintln!("Invalid input row: {}", e)
-    }).ok()) ;
+            eprintln!("Invalid input row: {}", e)
+        }).ok());
     let mut payments_engine = PaymentsEngine::new();
     for transaction in transaction_iter {
         if let Err(err) = payments_engine.execute(transaction) {
@@ -32,13 +33,16 @@ pub fn process_transactions<P>(path: P) -> Result<PaymentsEngine, csv::Error>
     Ok(payments_engine)
 }
 
-pub fn main() {
+pub fn main() -> ExitCode {
     let args = Args::parse();
     if let Ok(payments_engine) = process_transactions(&args.input_csv) {
         if let Err(error) = write_account_info(payments_engine.accounts()) {
             eprintln!("Could not write account information: {}", error);
+            return ExitCode::FAILURE;
         }
     } else {
         eprintln!("Could not read file {:?}", args.input_csv);
+        return ExitCode::FAILURE;
     }
+    ExitCode::SUCCESS
 }

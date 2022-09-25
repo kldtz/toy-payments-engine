@@ -6,6 +6,18 @@ use assert_cmd::prelude::*;
 use predicates::prelude::*;
 
 #[test]
+fn fails_on_invalid_argument() -> Result<(), Box<dyn Error>> {
+    let mut cmd = Command::cargo_bin("toy-payments-engine")?;
+
+    cmd.arg("nonexistent/file");
+    cmd.assert()
+        .failure()
+        .stderr(predicates::str::contains("Could not read file"));
+
+    Ok(())
+}
+
+#[test]
 fn last_transaction_fails() -> Result<(), Box<dyn Error>> {
     let mut cmd = Command::cargo_bin("toy-payments-engine")?;
 
